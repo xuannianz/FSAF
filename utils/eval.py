@@ -290,14 +290,15 @@ if __name__ == '__main__':
         skip_difficult=True,
         **common_args
     )
-    model_path = 'resnet101_pascal_47_0.7652.h5'
+    model_path = '/home/adam/workspace/github/xuannianz/carrot/fsaf/snapshots/2019-10-05/resnet101_pascal_47_0.7652.h5'
     # load retinanet model
     # import keras.backend as K
     # K.set_learning_phase(1)
-    model = models.load_model(model_path, backbone_name='resnet101')
-    # if the model is not converted to an inference model, use the line below
-    # see: https://github.com/fizyr/keras-retinanet#converting-a-training-model-to-inference-model
-    model = models.convert_model(model)
+    from models.resnet import resnet_fsaf
+    from models.retinanet import fsaf_bbox
+    fsaf = resnet_fsaf(num_classes=20, backbone='resnet101')
+    model = fsaf_bbox(fsaf)
+    model.load_weights(model_path, by_name=True)
     average_precisions = evaluate(generator, model, visualize=False)
     # compute per class average precision
     total_instances = []

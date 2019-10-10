@@ -33,12 +33,15 @@ keras.backend.set_session(get_session())
 model_path = 'resnet101_pascal_47_0.7652.h5'
 
 # load retinanet model
-model = models.load_model(model_path, backbone_name='resnet101')
+# model = models.load_model(model_path, backbone_name='resnet101')
 
 # if the model is not converted to an inference model, use the line below
 # see: https://github.com/fizyr/keras-retinanet#converting-a-training-model-to-inference-model
-model = models.convert_model(model)
-
+from models.resnet import resnet_fsaf
+from models.retinanet import fsaf_bbox
+fsaf = resnet_fsaf(num_classes=20, backbone='resnet101')
+model = fsaf_bbox(fsaf)
+model.load_weights(model_path, by_name=True)
 # load label to names mapping for visualization purposes
 voc_classes = {
     'aeroplane': 0,
