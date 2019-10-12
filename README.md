@@ -3,7 +3,7 @@ This is an implementation of [FSAF](https://arxiv.org/abs/1903.00621) on keras a
 and fsaf branch of [zccstig/mmdetection](https://github.com/zccstig/mmdetection/tree/fsaf). 
 Thanks for their hard work. 
 ## Test
-1. I trained on Pascal VOC2012 trainval.txt + Pascal VOC2012 train.txt, and validated on Pascal VOC2007 val.txt. There are 14014 images for training and 2510 images for validation.
+1. I trained on Pascal VOC2012 trainval.txt + Pascal VOC2012 train.txt, and validated on Pascal VOC2007 val.txt. There are 14041 images for training and 2510 images for validation.
 2. The best evaluation results on VOC2007 test are: 
 
 | backbone | mAP |
