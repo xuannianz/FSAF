@@ -9,7 +9,7 @@ And it is much better and faster than the one based on retinanet.
 It can also converge quite quickly. After the first epoch(batch_size=64, steps=1000), we can get an mAP<sub>50</sub> of 0.6xxx on val dataset.
 
 ## Test
-1. I trained on Pascal VOC2012 trainval.txt + Pascal VOC2012 train.txt, and validated on Pascal VOC2007 val.txt. There are 14041 images for training and 2510 images for validation.
+1. I trained on Pascal VOC2012 trainval.txt + Pascal VOC2007 train.txt, and validated on Pascal VOC2007 val.txt. There are 14041 images for training and 2510 images for validation.
 2. The best evaluation result (score_threshold=0.01, mAP<sub>50</sub>, image_size=416) on VOC2007 test is 0.8358. I have only trained once.
 3. Pretrained yolo and fsaf weights are here. [baidu netdisk](https://pan.baidu.com/s/1QoGXnajcohj9P4yCVwJ4Yw), extract code: qab7
 4. `python3 yolo/inference.py` to test your image by specifying image path and model path there. 
