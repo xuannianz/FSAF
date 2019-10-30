@@ -14,17 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from utils.compute_overlap import compute_overlap
-from utils.visualization import draw_detections, draw_annotations
-
-import keras
 import numpy as np
-import os
 import cv2
 import progressbar
-import pickle
-
 assert (callable(progressbar.progressbar)), "Using wrong progressbar module, install 'progressbar2' instead."
+
+from utils.compute_overlap import compute_overlap
+from utils.visualization import draw_detections, draw_annotations
 
 
 def _compute_ap(recall, precision):
@@ -59,7 +55,7 @@ def _compute_ap(recall, precision):
     return ap
 
 
-def _get_detections(generator, model, score_threshold=0.05, max_detections=100, visualize=False):
+def _get_detections(generator, model, score_threshold=0.01, max_detections=100, visualize=False):
     """
     Get the detections from the model using the generator.
 
@@ -77,21 +73,20 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         A list of lists containing the detections for each image in the generator.
 
     """
-    all_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in
-                      range(generator.size())]
+    all_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in range(generator.size())]
 
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
-        raw_image = generator.load_image(i)
-        image = generator.preprocess_image(raw_image.copy())
-        image, scale = generator.resize_image(image)
+        image = generator.load_image(i)
+        src_image = image.copy()
+        image, scale, offset_h, offset_w = generator.preprocess_image(image)
 
-        if keras.backend.image_data_format() == 'channels_first':
-            image = image.transpose((2, 0, 1))
-
+        # run network
         # run network
         boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
 
         # correct boxes for image scale
+        boxes[0, :, [0, 2]] -= offset_w
+        boxes[0, :, [1, 3]] -= offset_h
         boxes /= scale
 
         # select indices which have a score above the threshold
@@ -105,31 +100,29 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # select detections
         # (n, 4)
-        image_boxes = boxes[0, indices[scores_sort], :]
+        boxes = boxes[0, indices[scores_sort], :]
         # (n, )
-        image_scores = scores[scores_sort]
+        scores = scores[scores_sort]
         # (n, )
-        image_labels = labels[0, indices[scores_sort]]
+        labels = labels[0, indices[scores_sort]]
         # (n, 6)
-        image_detections = np.concatenate(
-            [image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
+        detections = np.concatenate(
+            [boxes, np.expand_dims(scores, axis=1), np.expand_dims(labels, axis=1)], axis=1)
 
         if visualize:
-            draw_annotations(raw_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
-            draw_detections(raw_image, image_boxes[:5], image_scores[:5], image_labels[:5], label_to_name=generator.label_to_name,
+            # draw_annotations(src_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
+            draw_detections(src_image, boxes[:5], scores[:5], labels[:5],
+                            label_to_name=generator.label_to_name,
                             score_threshold=score_threshold)
 
             # cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), raw_image)
             cv2.namedWindow('{}'.format(i), cv2.WINDOW_NORMAL)
-            cv2.imshow('{}'.format(i), raw_image)
+            cv2.imshow('{}'.format(i), src_image)
             cv2.waitKey(0)
 
         # copy detections to all_detections
-        for label in range(generator.num_classes()):
-            if not generator.has_label(label):
-                continue
-
-            all_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
+        for class_id in range(generator.num_classes()):
+            all_detections[i][class_id] = detections[detections[:, -1] == class_id, :-1]
 
     return all_detections
 
@@ -168,7 +161,7 @@ def evaluate(
         generator,
         model,
         iou_threshold=0.5,
-        score_threshold=0.05,
+        score_threshold=0.01,
         max_detections=100,
         visualize=False,
         epoch=0
@@ -260,49 +253,34 @@ def evaluate(
 
 
 if __name__ == '__main__':
-    from generators.voc_generator import PascalVocGenerator
-    from utils.image import preprocess_image
-    import models
+    from yolo.generators.pascal import PascalVocGenerator
+    from yolo.model import yolo_body
     import os
 
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     common_args = {
         'batch_size': 1,
-        'image_min_side': 800,
-        'image_max_side': 1333,
-        'preprocess_image': preprocess_image,
+        'image_size': 416
     }
-    # generator = PascalVocGenerator(
-    #     'datasets/voc_trainval/VOC0712',
-    #     'val',
-    #     shuffle_groups=False,
-    #     skip_truncated=False,
-    #     skip_difficult=True,
-    #     **common_args
-    # )
-    generator = PascalVocGenerator(
+    test_generator = PascalVocGenerator(
         'datasets/voc_test/VOC2007',
         'test',
         shuffle_groups=False,
         skip_truncated=False,
         skip_difficult=True,
+        anchors_path='voc_anchors_416.txt',
         **common_args
     )
-    model_path = '/home/adam/workspace/github/xuannianz/carrot/fsaf/snapshots/2019-10-05/resnet101_pascal_47_0.7652.h5'
-    # load retinanet model
-    # import keras.backend as K
-    # K.set_learning_phase(1)
-    from models.resnet import resnet_fsaf
-    from models.retinanet import fsaf_bbox
-    fsaf = resnet_fsaf(num_classes=20, backbone='resnet101')
-    model = fsaf_bbox(fsaf)
-    model.load_weights(model_path, by_name=True)
-    average_precisions = evaluate(generator, model, visualize=False)
+    model_path = 'pascal_18_6.4112_6.5125_0.8319_0.8358.h5'
+    num_classes = test_generator.num_classes()
+    model, prediction_model = yolo_body(num_classes=num_classes)
+    prediction_model.load_weights(model_path, by_name=True, skip_mismatch=True)
+    average_precisions = evaluate(test_generator, prediction_model, visualize=False)
     # compute per class average precision
     total_instances = []
     precisions = []
     for label, (average_precision, num_annotations) in average_precisions.items():
-        print('{:.0f} instances of class'.format(num_annotations), generator.label_to_name(label),
+        print('{:.0f} instances of class'.format(num_annotations), test_generator.label_to_name(label),
               'with average precision: {:.4f}'.format(average_precision))
         total_instances.append(num_annotations)
         precisions.append(average_precision)

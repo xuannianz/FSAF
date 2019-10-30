@@ -2,9 +2,14 @@
 This is an implementation of [FSAF](https://arxiv.org/abs/1903.00621) on keras and Tensorflow. The project is based on [fizyr/keras-retinanet](https://github.com/fizyr/keras-retinanet)
 and fsaf branch of [zccstig/mmdetection](https://github.com/zccstig/mmdetection/tree/fsaf). 
 Thanks for their hard work. 
+
+As the authors write, **FASF module can be plugged into any single-shot detectors with FPN-like structure smoothly**. 
+I have also tried on [yolo3](yolo). Anchor-free yolo3(with FSAF) gets a comparable performance with the anchor-based counterpart. But you don't need to pre-compute the anchor sizes any more.
+And it is much better and faster than the one based on retinanet.
+
 ## Test
 1. I trained on Pascal VOC2012 trainval.txt + Pascal VOC2012 train.txt, and validated on Pascal VOC2007 val.txt. There are 14041 images for training and 2510 images for validation.
-2. The best evaluation results on VOC2007 test are: 
+2. The best evaluation results (score_threshold=0.05) on VOC2007 test are: 
 
 | backbone | mAP<sub>50</sub> |
 | ---- | ---- |

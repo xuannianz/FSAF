@@ -128,7 +128,7 @@ def create_models(backbone_retinanet, num_classes, weights, num_gpus=0, freeze_b
             'regr_loss': lambda y_true, y_pred: y_pred,
         },
         # optimizer=keras.optimizers.adam(lr=lr, clipnorm=0.001)
-        optimizer=keras.optimizers.adam(lr=1e-5)
+        optimizer=keras.optimizers.adam(lr=1e-4)
     )
 
     return model, training_model, prediction_model
@@ -449,7 +449,8 @@ def main(args=None):
                 'cls_loss': lambda y_true, y_pred: y_pred,
                 'regr_loss': lambda y_true, y_pred: y_pred,
             },
-            optimizer=keras.optimizers.sgd(lr=1e-6, momentum=0.9, nesterov=True, decay=1e-5)
+            # optimizer=keras.optimizers.sgd(lr=1e-5, momentum=0.9, nesterov=True, decay=1e-6)
+            optimizer=keras.optimizers.adam(lr=1e-5)
         )
     else:
         weights = args.weights
@@ -494,7 +495,7 @@ def main(args=None):
     return training_model.fit_generator(
         generator=train_generator,
         steps_per_epoch=args.steps,
-        initial_epoch=0,
+        initial_epoch=9,
         epochs=args.epochs,
         verbose=1,
         callbacks=callbacks,

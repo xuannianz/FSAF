@@ -36,7 +36,6 @@ def keras_version_ok():
     """
     Check if the current Keras version is higher than the minimum version.
     """
-    # tuple 的比较就是逐个元素的比较
     return keras_version() >= minimum_keras_version
 
 

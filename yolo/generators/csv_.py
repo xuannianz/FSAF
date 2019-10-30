@@ -14,17 +14,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from .generator import Generator
-from utils.image import read_image_bgr
-
+from collections import OrderedDict
+import csv
 import numpy as np
+import os.path
 from PIL import Image
 from six import raise_from
-import csv
 import sys
-import os.path
-from collections import OrderedDict
+
+from utils.image import read_image_bgr
+from yolo.generators.common import Generator
 
 
 def _parse(value, function, fmt):
@@ -245,6 +244,7 @@ class CSVGenerator(Generator):
 
 if __name__ == '__main__':
     import cv2
+
     csv_generator = CSVGenerator(
         csv_data_file='/home/adam/workspace/github/keras-retinanet_vat/val_gray_annotations_20190615_1255_127.csv',
         csv_class_file='/home/adam/workspace/github/keras-retinanet_vat/vat_classes.csv'
@@ -254,7 +254,10 @@ if __name__ == '__main__':
         batch_regr_targets = targets[1]
         batch_cls_targets = targets[2]
         batch_centerness_targets = targets[3]
-        for image, annotation, regr_targets, cls_targets, centerness_targets in zip(image_group, annotation_group, batch_regr_targets, batch_cls_targets, batch_centerness_targets):
+        for image, annotation, regr_targets, cls_targets, centerness_targets in zip(image_group, annotation_group,
+                                                                                    batch_regr_targets,
+                                                                                    batch_cls_targets,
+                                                                                    batch_centerness_targets):
             gt_boxes = annotation['bboxes']
             for gt_box in gt_boxes:
                 gt_xmin, gt_ymin, gt_xmax, gt_ymax = gt_box
@@ -269,7 +272,8 @@ if __name__ == '__main__':
                 ymax = cy + b
                 class_id = np.argmax(cls_targets[pos_index])
                 centerness = centerness_targets[pos_index][0]
-                cv2.putText(image, '{:.2f}'.format(centerness), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (255, 0, 255), 2)
+                cv2.putText(image, '{:.2f}'.format(centerness), (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (255, 0, 255),
+                            2)
                 cv2.putText(image, str(class_id), (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 0, 0), 3)
                 cv2.circle(image, (round(cx), round(cy)), 5, (255, 0, 0), -1)
                 cv2.rectangle(image, (round(xmin), round(ymin)), (round(xmax), round(ymax)), (0, 0, 255), 2)

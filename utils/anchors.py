@@ -72,7 +72,6 @@ def anchor_targets_bbox(
 
     batch_size = len(image_group)
 
-    # 最后一列表示是否 ignore
     regression_batch = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=keras.backend.floatx())
     labels_batch = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=keras.backend.floatx())
 
@@ -84,7 +83,6 @@ def anchor_targets_bbox(
                                                                                             annotations['bboxes'],
                                                                                             negative_overlap,
                                                                                             positive_overlap)
-            # 最后一列表示是否 ignore
             labels_batch[index, ignore_indices, -1] = -1
             labels_batch[index, positive_indices, -1] = 1
 
@@ -92,7 +90,6 @@ def anchor_targets_bbox(
             regression_batch[index, positive_indices, -1] = 1
 
             # compute target class labels
-            # 对应的 class 那一列设置为 1
             labels_batch[
                 index, positive_indices, annotations['labels'][argmax_overlaps_inds[positive_indices]].astype(int)] = 1
 
@@ -100,7 +97,6 @@ def anchor_targets_bbox(
 
         # ignore anchors outside of image
         if image.shape:
-            # 把两个 (N, ) stack 一下变成 (2, N), 转置一下变成 (N, 2)
             anchors_centers = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
             indices = np.logical_or(anchors_centers[:, 0] >= image.shape[1], anchors_centers[:, 1] >= image.shape[0])
 
@@ -132,14 +128,11 @@ def compute_gt_annotations(
     """
 
     overlaps = compute_overlap(anchors.astype(np.float64), annotations.astype(np.float64))
-    # (N, ), 每个 anchor 对应的有最大 overlap 的 gt_box 的 id
     argmax_overlaps_inds = np.argmax(overlaps, axis=1)
-    # (N, ), 每个 anchor 和所有 gt_boxes 的最大 overlap
     max_overlaps = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 
     # assign "dont care" labels
     positive_indices = max_overlaps >= positive_overlap
-    # & 就是 numpy 中的 and, ~ 就是 numpy 的取反
     ignore_indices = (max_overlaps > negative_overlap) & ~positive_indices
 
     return positive_indices, ignore_indices, argmax_overlaps_inds
@@ -163,7 +156,6 @@ def layer_shapes(image_shape, model):
     for layer in model.layers[1:]:
         nodes = layer._inbound_nodes
         for node in nodes:
-            # node 关联的多个输入的 shapes
             input_shapes = [shape[inbound_layer.name] for inbound_layer in node.inbound_layers]
             if not input_shapes:
                 continue
@@ -197,7 +189,6 @@ def guess_shapes(image_shape, pyramid_levels):
         A list of image shapes at each pyramid level.
     """
     image_shape = np.array(image_shape[:2])
-    # + 2 ** x - 1 是为了处理 image_shape // (2 ** x) 不是整除的情况, 可以起到 +1 的作用
     image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
     return image_shapes
 
@@ -261,7 +252,6 @@ def shift(feature_map_shape, stride, anchors):
 
     shift_x, shift_y = np.meshgrid(shift_x, shift_y)
 
-    # ravel 后变成 (fh * fw), vstack 一下变成 (4, fh * fw), 再 transpose 之后变成 (fh * fw, 4)
     shifts = np.vstack((
         shift_x.ravel(), shift_y.ravel(),
         shift_x.ravel(), shift_y.ravel()
@@ -304,9 +294,6 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     anchors = np.zeros((num_anchors, 4))
 
     # scale base_size
-    # 假设 scales 为 [2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)]
-    # tile 之后变成 [[2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], [2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0), ...], ...]
-    # tile 之后, shape 为 (2, num_anchors=len(ratios) * len(scales)), 转置一下变成 (num_anchors, 2)
     anchors[:, 2:] = base_size * np.tile(scales, (2, len(ratios))).T
 
     # compute areas of anchors
@@ -314,14 +301,11 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     areas = anchors[:, 2] * anchors[:, 3]
 
     # correct for ratios
-    # 假设 ratios 为 [0.5, 1.0, 2.0], repeat 一下变成 [0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0]
     # (num_anchors, )
     anchors[:, 2] = np.sqrt(areas / np.repeat(ratios, len(scales)))
     anchors[:, 3] = anchors[:, 2] * np.repeat(ratios, len(scales))
 
     # transform from (cx, cy, w, h) -> (x1, y1, x2, y2)
-    # anchors[:, 2] * 0.5 就是取每个 anchor 的 w/2, 第 0 位和第 2 位都设置成 w/2
-    # 一减就是 (0 - w/2, 0 - h/2, w - w/2, h - h/2) --> (-w/2, -h/2, w/2, h/2), 这样中心点就是 (0, 0) 方便后面做 shift
     anchors[:, 0::2] -= np.tile(anchors[:, 2] * 0.5, (2, 1)).T
     anchors[:, 1::2] -= np.tile(anchors[:, 3] * 0.5, (2, 1)).T
 
@@ -330,12 +314,10 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
 
 def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     """
-    计算 anchors 的 (x1, y1, x2, y2) 和 gt_boxes 的 (x1, y1, x2, y2) 的 delta 值除以 anchors 的宽高
-    然后再减去 mean 除以 std 作为最终的 regression 的真值
 
     Args:
         anchors: (N, 4)
-        gt_boxes: (N, 4) 这里的 N 和 anchors 的 N 是一样的, 因为它表示每一个 anchor 匹配的那个最大 overlap 的 gt_boxes
+        gt_boxes: (N, 4)
         mean:
         std:
 

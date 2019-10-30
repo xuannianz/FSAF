@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from generators.generator import Generator
-from utils.image import read_image_bgr
-
-import os
+import cv2
 import numpy as np
+import os
 from six import raise_from
-from PIL import Image
+
+from yolo.generators.common import Generator
 
 try:
     import xml.etree.cElementTree as ET
@@ -151,15 +150,18 @@ class PascalVocGenerator(Generator):
         Compute the aspect ratio for an image with image_index.
         """
         path = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
-        image = Image.open(path)
-        return float(image.width) / float(image.height)
+        image = cv2.imread(path)
+        h, w = image.shape[:2]
+        return float(w) / float(h)
 
     def load_image(self, image_index):
         """
         Load an image at the image_index.
         """
         path = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
-        return read_image_bgr(path)
+        image = cv2.imread(path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        return image
 
     def __parse_annotation(self, element):
         """
