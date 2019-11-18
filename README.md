@@ -16,7 +16,10 @@ And it is much better and faster than the one based on retinanet.
 | resnet50 | 0.7248 | 
 | resnet101 | 0.7652 |
 
-3. Pretrained model is here. [baidu netdisk](https://pan.baidu.com/s/1ZdHvR-03XqHvxWG0rLCw1g) extract code: rbrr     
+3. Pretrained models are here.   
+[baidu netdisk](https://pan.baidu.com/s/1ZdHvR-03XqHvxWG0rLCw1g) extract code: rbrr     
+[goole dirver](https://drive.google.com/open?id=1Hcgxp5OwqNsAx-HYgcIhLat1OOHKnvJ2)
+
 4. `python3 inference.py` to test your image by specifying image path and model path there. 
 
 ![image1](test/004456.jpg) 
