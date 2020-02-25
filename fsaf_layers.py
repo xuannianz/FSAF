@@ -67,10 +67,10 @@ def level_select(cls_pred, regr_pred, gt_boxes, feature_shapes, strides, pos_sca
             shift_xx = tf.reshape(shift_xx, (-1,))
             shift_yy = tf.reshape(shift_yy, (-1,))
             shifts = K.stack((shift_xx, shift_yy, shift_xx, shift_yy), axis=-1)
-            l = shifts[:, 0] - gt_box[0]
-            t = shifts[:, 1] - gt_box[1]
-            r = gt_box[2] - shifts[:, 2]
-            b = gt_box[3] - shifts[:, 3]
+            l = tf.maximum(shifts[:, 0] - gt_box[0], 0)
+            t = tf.maximum(shifts[:, 1] - gt_box[1], 0)
+            r = tf.maximum(gt_box[2] - shifts[:, 2], 0)
+            b = tf.maximum(gt_box[3] - shifts[:, 3], 0)
             locs_regr_true_i = tf.stack([l, t, r, b], axis=-1)
             locs_regr_true_i /= 4.0
             loss_regr = iou_loss(K.expand_dims(locs_regr_true_i, axis=0), K.expand_dims(locs_regr_pred_i, axis=0))
@@ -199,10 +199,10 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
                 shift_y = (locs_y + 0.5) * stride
                 shift_xx, shift_yy = tf.meshgrid(shift_x, shift_y)
                 shifts = K.stack((shift_xx, shift_yy, shift_xx, shift_yy), axis=-1)
-                l = shifts[:, :, 0] - gt_box[0]
-                t = shifts[:, :, 1] - gt_box[1]
-                r = gt_box[2] - shifts[:, :, 2]
-                b = gt_box[3] - shifts[:, :, 3]
+                l = tf.maximum(shifts[:, :, 0] - gt_box[0], 0)
+                t = tf.maximum(shifts[:, :, 1] - gt_box[1], 0)
+                r = tf.maximum(gt_box[2] - shifts[:, :, 2], 0)
+                b = tf.maximum(gt_box[3] - shifts[:, :, 3], 0)
                 deltas = K.stack((l, t, r, b), axis=-1)
                 level_box_regr_pos_target = deltas / 4.0
                 level_box_regr_pos_mask = tf.ones((pos_y2_[0] - pos_y1_[0], pos_x2_[0] - pos_x1_[0]))
