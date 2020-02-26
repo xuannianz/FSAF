@@ -546,7 +546,7 @@ def fsaf(
     batch_regr_pred, batch_cls_pred = __build_fsaf_pyramid(submodels, features)
     batch_gt_box_levels = LevelSelect(name='level_select')(
         [batch_cls_pred, batch_regr_pred, feature_shapes_input, gt_boxes_input])
-    batch_cls_target, batch_cls_mask, batch_cls_num_pos, batch_regr_target, batch_regr_mask = FSAFTarget(
+    batch_cls_target, batch_cls_mask, batch_cls_num_pos, batch_regr_target, batch_regr_mask, batch_soft_weight = FSAFTarget(
         num_classes=num_classes,
         name='fsaf_target')(
         [batch_gt_box_levels, feature_shapes_input, gt_boxes_input])
@@ -555,10 +555,10 @@ def fsaf(
     cls_loss = keras.layers.Lambda(focal_loss_graph,
                                    output_shape=(1,),
                                    name="cls_loss")(
-        [batch_cls_target, batch_cls_pred, batch_cls_mask, batch_cls_num_pos])
+        [batch_cls_target, batch_cls_pred, batch_cls_mask, batch_cls_num_pos, batch_soft_weight])
     regr_loss = keras.layers.Lambda(iou_loss_graph,
                                     output_shape=(1,),
-                                    name="regr_loss")([batch_regr_target, batch_regr_pred, batch_regr_mask])
+                                    name="regr_loss")([batch_regr_target, batch_regr_pred, batch_regr_mask, batch_soft_weight])
     return keras.models.Model(inputs=inputs,
                               outputs=[cls_loss, regr_loss, batch_cls_pred, batch_regr_pred],
                               name=name)

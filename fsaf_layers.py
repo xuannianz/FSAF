@@ -152,6 +152,7 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
     cls_num_pos = tf.zeros((0,))
     regr_target = tf.zeros((0, 4))
     regr_mask = tf.zeros((0,), dtype=tf.bool)
+    soft_weight = tf.zeros((0,))
     for level_id in range(len(strides)):
         feature_shape = feature_shapes[level_id]
         stride = strides[level_id]
@@ -159,7 +160,7 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
         fw = feature_shape[1]
         level_gt_box_indices = tf.where(tf.equal(gt_box_levels, level_id))
 
-        def do_level_has_gt_boxes():
+        def do_level_have_gt_boxes():
             level_gt_boxes = tf.gather(gt_boxes, level_gt_box_indices[:, 0])
             level_proj_boxes = level_gt_boxes / stride
             level_gt_labels = tf.gather_nd(gt_labels, level_gt_box_indices)
@@ -204,24 +205,28 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
                 r = tf.maximum(gt_box[2] - shifts[:, :, 2], 0)
                 b = tf.maximum(gt_box[3] - shifts[:, :, 3], 0)
                 deltas = K.stack((l, t, r, b), axis=-1)
-                level_box_regr_pos_target = deltas / 4.0
+                level_box_regr_pos_target = deltas / 4.0 / stride
                 level_box_regr_pos_mask = tf.ones((pos_y2_[0] - pos_y1_[0], pos_x2_[0] - pos_x1_[0]))
                 level_box_regr_mask = tf.pad(level_box_regr_pos_mask, ign_pad + other_pad)
                 level_box_regr_target = tf.pad(level_box_regr_pos_target,
                                                tf.concat((ign_pad + other_pad, tf.constant([[0, 0]])), axis=0))
+
+                level_box_soft_pos_weight = tf.minimum(l, r) * tf.minimum(t, b) / (tf.maximum(l, r) * tf.maximum(t, b) + 1e-7)
+                level_box_soft_weight = tf.pad(level_box_soft_pos_weight, ign_pad + other_pad, constant_values=1.)
+
                 level_box_pos_area = (l + r) * (t + b)
                 level_box_area = tf.pad(level_box_pos_area, ign_pad + other_pad, constant_values=1e7)
-                return level_box_cls_target, level_box_cls_mask, level_box_regr_target, level_box_regr_mask, level_box_area
+                return level_box_cls_target, level_box_cls_mask, level_box_regr_target, level_box_regr_mask, level_box_area, level_box_soft_weight
 
-            level_cls_target, level_cls_mask, level_regr_target, level_regr_mask, level_area = tf.map_fn(
+            level_cls_target_, level_cls_mask_, level_regr_target_, level_regr_mask_, level_area_, level_soft_weight_ = tf.map_fn(
                 build_single_gt_box_fsaf_target,
                 elems=[
                     ign_x1, ign_y1, ign_x2, ign_y2,
                     pos_x1, pos_y1, pos_x2, pos_y2,
                     level_gt_boxes, level_gt_labels],
-                dtype=(tf.float32, tf.float32, tf.float32, tf.float32, tf.float32)
+                dtype=(tf.float32, tf.float32, tf.float32, tf.float32, tf.float32, tf.float32)
             )
-            level_min_area_box_indices = tf.argmin(level_area, axis=0, output_type=tf.int32)
+            level_min_area_box_indices = tf.argmin(level_area_, axis=0, output_type=tf.int32)
             level_min_area_box_indices = tf.reshape(level_min_area_box_indices, (-1,))
             locs_x = K.arange(0, fw)
             locs_y = K.arange(0, fh)
@@ -229,37 +234,42 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
             locs_xx = tf.reshape(locs_xx, (-1,))
             locs_yy = tf.reshape(locs_yy, (-1,))
             level_indices = tf.stack((level_min_area_box_indices, locs_yy, locs_xx), axis=-1)
-            level_cls_target_ = tf.gather_nd(level_cls_target, level_indices)
-            level_regr_target_ = tf.gather_nd(level_regr_target, level_indices)
-            level_cls_num_pos_ = tf.reduce_sum(tf.cast(tf.equal(tf.reduce_max(level_cls_mask, axis=0), 2), tf.float32))
-            level_cls_mask = tf.equal(tf.reduce_max(level_cls_mask, axis=0), 2) | tf.equal(
-                tf.reduce_max(level_cls_mask, axis=0),
+            level_cls_target_ = tf.gather_nd(level_cls_target_, level_indices)
+            level_regr_target_ = tf.gather_nd(level_regr_target_, level_indices)
+            # level_cls_num_pos_ = tf.reduce_sum(tf.cast(tf.equal(tf.reduce_max(level_cls_mask_, axis=0), 2), tf.float32))
+            level_cls_mask_ = tf.equal(tf.reduce_max(level_cls_mask_, axis=0), 2) | tf.equal(
+                tf.reduce_max(level_cls_mask_, axis=0),
                 -1)
-            level_cls_mask_ = tf.reshape(level_cls_mask, (fh * fw,))
-            level_regr_mask = tf.reduce_sum(level_regr_mask, axis=0) > 0
-            level_regr_mask_ = tf.reshape(level_regr_mask, (fh * fw,))
-            return level_cls_target_, level_cls_mask_, level_cls_num_pos_, level_regr_target_, level_regr_mask_
+            level_cls_mask_ = tf.reshape(level_cls_mask_, (fh * fw,))
+            level_regr_mask_ = tf.reduce_sum(level_regr_mask_, axis=0) > 0
+            level_regr_mask_ = tf.reshape(level_regr_mask_, (fh * fw,))
+            level_soft_weight_ = tf.gather_nd(level_soft_weight_, level_indices)
+            level_soft_weight_ = tf.reshape(level_soft_weight_, (fh * fw,))
+            level_cls_num_pos_ = tf.reduce_sum(level_soft_weight_ * tf.cast(level_regr_mask_, tf.float32))
+            return level_cls_target_, level_cls_mask_, level_cls_num_pos_, level_regr_target_, level_regr_mask_, level_soft_weight_
 
-        def do_level_has_no_gt_boxes():
+        def do_level_have_no_gt_boxes():
             level_cls_target_ = tf.zeros((fh * fw, num_classes))
             level_cls_mask_ = tf.ones((fh * fw,), dtype=tf.bool)
             level_cls_num_pos_ = tf.zeros(())
             level_regr_target_ = tf.zeros((fh * fw, 4))
             level_regr_mask_ = tf.zeros((fh * fw,), dtype=tf.bool)
-            return level_cls_target_, level_cls_mask_, level_cls_num_pos_, level_regr_target_, level_regr_mask_
+            level_soft_weight_ = tf.ones((fh * fw,))
+            return level_cls_target_, level_cls_mask_, level_cls_num_pos_, level_regr_target_, level_regr_mask_, level_soft_weight_
 
-        level_cls_target, level_cls_mask, level_cls_num_pos, level_regr_target, level_regr_mask = tf.cond(
+        level_cls_target, level_cls_mask, level_cls_num_pos, level_regr_target, level_regr_mask, level_soft_weight = tf.cond(
             tf.equal(tf.size(level_gt_box_indices), 0),
-            do_level_has_no_gt_boxes,
-            do_level_has_gt_boxes)
+            do_level_have_no_gt_boxes,
+            do_level_have_gt_boxes)
 
         cls_target = tf.concat([cls_target, level_cls_target], axis=0)
         cls_mask = tf.concat([cls_mask, level_cls_mask], axis=0)
         cls_num_pos = tf.concat([cls_num_pos, level_cls_num_pos[None]], axis=0)
         regr_target = tf.concat([regr_target, level_regr_target], axis=0)
         regr_mask = tf.concat([regr_mask, level_regr_mask], axis=0)
+        soft_weight = tf.concat([soft_weight, level_soft_weight], axis=0)
     cls_num_pos = tf.reduce_sum(cls_num_pos)
-    return [cls_target, cls_mask, cls_num_pos, regr_target, regr_mask]
+    return [cls_target, cls_mask, cls_num_pos, regr_target, regr_mask, soft_weight]
 
 
 class FSAFTarget(Layer):
@@ -289,7 +299,7 @@ class FSAFTarget(Layer):
         outputs = tf.map_fn(
             _build_fsaf_target,
             elems=[batch_gt_box_levels, batch_gt_boxes],
-            dtype=[tf.float32, tf.bool, tf.float32, tf.float32, tf.bool],
+            dtype=[tf.float32, tf.bool, tf.float32, tf.float32, tf.bool, tf.float32],
         )
         return outputs
 
@@ -305,7 +315,7 @@ class FSAFTarget(Layer):
         """
         batch_size = input_shape[0][0]
         return [[batch_size, None, self.num_classes], [batch_size, None], [batch_size, ], [batch_size, None, 4],
-                [batch_size, None]]
+                [batch_size, None], [batch_size, ]]
 
     def get_config(self):
         """
@@ -390,10 +400,10 @@ class RegressBoxes(Layer):
 
     def call(self, inputs, **kwargs):
         locations, strides, regression = inputs
-        x1 = locations[:, :, 0] - regression[:, :, 0] * 4.0
-        y1 = locations[:, :, 1] - regression[:, :, 1] * 4.0
-        x2 = locations[:, :, 0] + regression[:, :, 2] * 4.0
-        y2 = locations[:, :, 1] + regression[:, :, 3] * 4.0
+        x1 = locations[:, :, 0] - regression[:, :, 0] * 4.0 * strides
+        y1 = locations[:, :, 1] - regression[:, :, 1] * 4.0 * strides
+        x2 = locations[:, :, 0] + regression[:, :, 2] * 4.0 * strides
+        y2 = locations[:, :, 1] + regression[:, :, 3] * 4.0 * strides
         bboxes = K.stack([x1, y1, x2, y2], axis=-1)
         return bboxes
 

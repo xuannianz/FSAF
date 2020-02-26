@@ -171,7 +171,7 @@ def focal_with_mask(alpha=0.25, gamma=2.0):
             The focal loss of y_pred w.r.t. y_true.
         """
         # compute the focal loss
-        y_true, y_pred, cls_mask, cls_num_pos = inputs[0], inputs[1], inputs[2], inputs[3]
+        y_true, y_pred, cls_mask, cls_num_pos, soft_weight = inputs[0], inputs[1], inputs[2], inputs[3], inputs[4]
         alpha_factor = K.ones_like(y_true) * alpha
         alpha_factor = tf.where(K.equal(y_true, 1), alpha_factor, 1 - alpha_factor)
         focal_weight = tf.where(K.equal(y_true, 1), 1 - y_pred, y_pred)
@@ -179,8 +179,9 @@ def focal_with_mask(alpha=0.25, gamma=2.0):
         # (B, N) --> (B, N, 1)
         cls_mask = tf.cast(cls_mask, tf.float32)
         cls_mask = tf.expand_dims(cls_mask, axis=-1)
+        soft_weight = tf.expand_dims(soft_weight, axis=-1)
         # (B, N, num_classes) * (B, N, 1)
-        masked_cls_loss = focal_weight * K.binary_crossentropy(y_true, y_pred) * cls_mask
+        masked_cls_loss = focal_weight * K.binary_crossentropy(y_true, y_pred) * cls_mask * soft_weight
         # compute the normalizer: the number of positive locations
         normalizer = K.maximum(K.cast_to_floatx(1.0), tf.reduce_sum(cls_num_pos))
         return K.sum(masked_cls_loss) / normalizer
@@ -198,7 +199,7 @@ def iou_with_mask():
         Returns:
 
         """
-        y_true, y_pred, regr_mask = inputs[0], inputs[1], inputs[2]
+        y_true, y_pred, regr_mask, soft_weight = inputs[0], inputs[1], inputs[2], inputs[3]
         y_true = tf.maximum(y_true, 0)
         pred_left = y_pred[:, :, 0]
         pred_top = y_pred[:, :, 1]
@@ -223,11 +224,12 @@ def iou_with_mask():
         masked_area_intersect = tf.boolean_mask(area_intersect, regr_mask)
         masked_area_union = masked_target_area + masked_pred_area - masked_area_intersect
 
+        masked_soft_weight = tf.boolean_mask(soft_weight, regr_mask)
         # (B, N)
-        masked_iou_loss = -tf.log((masked_area_intersect + 1e-7) / (masked_area_union + 1e-7))
+        masked_iou_loss = -tf.log((masked_area_intersect + 1e-7) / (masked_area_union + 1e-7)) * masked_soft_weight
         regr_mask = tf.cast(regr_mask, tf.float32)
         # compute the normalizer: the number of positive locations
-        regr_num_pos = tf.reduce_sum(regr_mask)
+        regr_num_pos = tf.reduce_sum(regr_mask * soft_weight)
         normalizer = K.maximum(K.cast_to_floatx(1.), regr_num_pos)
         return K.sum(masked_iou_loss) / normalizer
 

@@ -30,7 +30,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 keras.backend.set_session(get_session())
 # adjust this to point to your downloaded/trained model
 # models can be downloaded here: https://github.com/fizyr/keras-retinanet/releases
-model_path = '/home/adam/workspace/github/xuannianz/carrot/fsaf/snapshots/2019-10-05/resnet101_pascal_47_0.7652.h5'
+model_path = 'snapshots/2020-02-26/resnet50_pascal_01.h5'
 
 # load retinanet model
 # model = models.load_model(model_path, backbone_name='resnet101')
@@ -39,7 +39,7 @@ model_path = '/home/adam/workspace/github/xuannianz/carrot/fsaf/snapshots/2019-1
 # see: https://github.com/fizyr/keras-retinanet#converting-a-training-model-to-inference-model
 from models.resnet import resnet_fsaf
 from models.retinanet import fsaf_bbox
-fsaf = resnet_fsaf(num_classes=20, backbone='resnet101')
+fsaf = resnet_fsaf(num_classes=20, backbone='resnet50')
 model = fsaf_bbox(fsaf)
 model.load_weights(model_path, by_name=True)
 # load label to names mapping for visualization purposes
