@@ -7,6 +7,11 @@ As the authors write, **FASF module can be plugged into any single-shot detector
 I have also tried on [yolo3](yolo). Anchor-free yolo3(with FSAF) gets a comparable performance with the anchor-based counterpart. But you don't need to pre-compute the anchor sizes any more.
 And it is much better and faster than the one based on retinanet.
 
+**Updates**
+- [03/05/2020] The author of the paper has released a new paper [SAPD](https://arxiv.org/abs/1911.12448), which is based on FSAF. 
+I have implemented it at [xuannianz/SAPD](https://github.com/xuannianz/SAPD).
+
+
 ## Test
 1. I trained on Pascal VOC2012 trainval.txt + Pascal VOC2007 train.txt, and validated on Pascal VOC2007 val.txt. There are 14041 images for training and 2510 images for validation.
 2. The best evaluation results (score_threshold=0.05) on VOC2007 test are: 
