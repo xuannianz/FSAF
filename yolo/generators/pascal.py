@@ -51,6 +51,15 @@ voc_classes = {
 
 
 def _findNode(parent, name, debug_name=None, parse=None):
+    """
+    Parse the named name.
+
+    Args:
+        parent: (todo): write your description
+        name: (str): write your description
+        debug_name: (str): write your description
+        parse: (todo): write your description
+    """
     if debug_name is None:
         debug_name = name
 

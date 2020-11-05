@@ -14,12 +14,24 @@ from yolo.model import yolo_body
 
 # set tf backend to allow memory to grow, instead of claiming everything
 def get_session():
+    """
+    Return a session object. session.
+
+    Args:
+    """
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
 
 
 def preprocess_image(image, image_size=416):
+    """
+    Preprocess an image.
+
+    Args:
+        image: (array): write your description
+        image_size: (int): write your description
+    """
     image_height, image_width = image.shape[:2]
     if image_height > image_width:
         scale = image_size / image_height

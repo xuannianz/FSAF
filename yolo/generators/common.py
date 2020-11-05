@@ -64,6 +64,12 @@ class Generator(keras.utils.Sequence):
             random.shuffle(self.groups)
 
     def on_epoch_end(self):
+        """
+        Shuffle the current epoch.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.shuffle_groups:
             random.shuffle(self.groups)
         self.current_index = 0
@@ -474,6 +480,13 @@ class Generator(keras.utils.Sequence):
         return inputs, targets
 
     def preprocess_image(self, image):
+        """
+        Preprocess an image.
+
+        Args:
+            self: (todo): write your description
+            image: (array): write your description
+        """
         image_height, image_width = image.shape[:2]
         if image_height > image_width:
             scale = self.image_size / image_height

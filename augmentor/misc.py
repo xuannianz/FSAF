@@ -6,6 +6,14 @@ ROTATE_DEGREE = [90, 180, 270]
 
 
 def rotate(image, boxes, prob=0.5):
+    """
+    Rotate image around image
+
+    Args:
+        image: (array): write your description
+        boxes: (int): write your description
+        prob: (int): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob < prob:
         return image, boxes
@@ -55,6 +63,14 @@ def rotate(image, boxes, prob=0.5):
 
 
 def crop(image, boxes, prob=0.5):
+    """
+    Crop a set of the image.
+
+    Args:
+        image: (array): write your description
+        boxes: (list): write your description
+        prob: (todo): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob < prob:
         return image, boxes
@@ -72,6 +88,14 @@ def crop(image, boxes, prob=0.5):
 
 
 def translate(image, boxes, prob=0.5):
+    """
+    Translate a set of the image
+
+    Args:
+        image: (array): write your description
+        boxes: (todo): write your description
+        prob: (todo): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob < prob:
         return image, boxes
@@ -106,11 +130,28 @@ def translate(image, boxes, prob=0.5):
 
 class MiscEffect:
     def __init__(self, rotate_prob=0.9, crop_prob=0.5, translate_prob=0.5):
+        """
+        Initialize the projection.
+
+        Args:
+            self: (todo): write your description
+            rotate_prob: (int): write your description
+            crop_prob: (int): write your description
+            translate_prob: (todo): write your description
+        """
         self.rotate_prob = rotate_prob
         self.crop_prob = crop_prob
         self.translate_prob = translate_prob
 
     def __call__(self, image, boxes):
+        """
+        Calls the callbacks.
+
+        Args:
+            self: (todo): write your description
+            image: (array): write your description
+            boxes: (list): write your description
+        """
         image, boxes = rotate(image, boxes, prob=self.rotate_prob)
         image, boxes = crop(image, boxes, prob=self.crop_prob)
         image, boxes = translate(image, boxes, prob=self.translate_prob)

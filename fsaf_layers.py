@@ -41,6 +41,11 @@ def level_select(cls_pred, regr_pred, gt_boxes, feature_shapes, strides, pos_sca
         x1, y1, x2, y2 = prop_box_graph(proj_boxes, pos_scale, fw, fh)
 
         def compute_gt_box_loss(args):
+            """
+            Compute the box loss.
+
+            Args:
+            """
             x1_ = args[0]
             y1_ = args[1]
             x2_ = args[2]
@@ -91,15 +96,33 @@ def level_select(cls_pred, regr_pred, gt_boxes, feature_shapes, strides, pos_sca
 
 class LevelSelect(Layer):
     def __init__(self, **kwargs):
+        """
+        Initialize the class
+
+        Args:
+            self: (todo): write your description
+        """
         super(LevelSelect, self).__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
+        """
+        Returns a tf.
+
+        Args:
+            self: (todo): write your description
+            inputs: (dict): write your description
+        """
         batch_cls_pred = inputs[0]
         batch_regr_pred = inputs[1]
         feature_shapes = inputs[2][0]
         batch_gt_boxes = inputs[3]
 
         def _level_select(args):
+            """
+            Return a set of the level of all boxes.
+
+            Args:
+            """
             cls_pred = args[0]
             regr_pred = args[1]
             gt_boxes = args[2]
@@ -145,6 +168,18 @@ class LevelSelect(Layer):
 
 
 def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, strides, pos_scale, ignore_scale):
+    """
+    Builds target target.
+
+    Args:
+        gt_box_levels: (todo): write your description
+        gt_boxes: (todo): write your description
+        feature_shapes: (todo): write your description
+        num_classes: (int): write your description
+        strides: (int): write your description
+        pos_scale: (float): write your description
+        ignore_scale: (bool): write your description
+    """
     gt_labels = tf.cast(gt_boxes[:, 4], tf.int32)
     gt_boxes = gt_boxes[:, :4]
     cls_target = tf.zeros((0, num_classes))
@@ -160,6 +195,11 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
         level_gt_box_indices = tf.where(tf.equal(gt_box_levels, level_id))
 
         def do_level_has_gt_boxes():
+            """
+            Computes the level of all boxes.
+
+            Args:
+            """
             level_gt_boxes = tf.gather(gt_boxes, level_gt_box_indices[:, 0])
             level_proj_boxes = level_gt_boxes / stride
             level_gt_labels = tf.gather_nd(gt_labels, level_gt_box_indices)
@@ -167,6 +207,11 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
             pos_x1, pos_y1, pos_x2, pos_y2 = prop_box_graph_2(level_proj_boxes, pos_scale, fw, fh)
 
             def build_single_gt_box_fsaf_target(args):
+                """
+                Build a single target from target.
+
+                Args:
+                """
                 ign_x1_ = args[0]
                 ign_y1_ = args[1]
                 ign_x2_ = args[2]
@@ -241,6 +286,11 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
             return level_cls_target_, level_cls_mask_, level_cls_num_pos_, level_regr_target_, level_regr_mask_
 
         def do_level_has_no_gt_boxes():
+            """
+            Determine if there is no level.
+
+            Args:
+            """
             level_cls_target_ = tf.zeros((fh * fw, num_classes))
             level_cls_mask_ = tf.ones((fh * fw,), dtype=tf.bool)
             level_cls_num_pos_ = tf.zeros(())
@@ -264,15 +314,34 @@ def build_fsaf_target(gt_box_levels, gt_boxes, feature_shapes, num_classes, stri
 
 class FSAFTarget(Layer):
     def __init__(self, num_classes, **kwargs):
+        """
+        Initialize the classes.
+
+        Args:
+            self: (todo): write your description
+            num_classes: (int): write your description
+        """
         super(FSAFTarget, self).__init__(**kwargs)
         self.num_classes = num_classes
 
     def call(self, inputs, **kwargs):
+        """
+        Builds a tensorflow graph.
+
+        Args:
+            self: (todo): write your description
+            inputs: (dict): write your description
+        """
         batch_gt_box_levels = inputs[0]
         feature_shapes = inputs[1][0]
         batch_gt_boxes = inputs[2]
 
         def _build_fsaf_target(args):
+            """
+            Build target target target target target.
+
+            Args:
+            """
             gt_box_levels = args[0]
             gt_boxes = args[1]
 
@@ -336,6 +405,13 @@ class Locations(Layer):
         super(Locations, self).__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
+        """
+        Perform the model.
+
+        Args:
+            self: (todo): write your description
+            inputs: (dict): write your description
+        """
         features = inputs
         feature_shapes = [tf.shape(feature)[1:3] for feature in features]
         locations_per_feature = []
@@ -361,6 +437,13 @@ class Locations(Layer):
         return [locations, strides]
 
     def compute_output_shape(self, input_shapes):
+        """
+        Compute the shape.
+
+        Args:
+            self: (todo): write your description
+            input_shapes: (list): write your description
+        """
         feature_shapes = [feature_shape[1:3] for feature_shape in input_shapes]
         total = 1
         for feature_shape in feature_shapes:
@@ -371,6 +454,12 @@ class Locations(Layer):
         return [[input_shapes[0][0], total, 2], [input_shapes[0][0], total]]
 
     def get_config(self):
+        """
+        Returns the base collector settings
+
+        Args:
+            self: (str): write your description
+        """
         base_config = super(Locations, self).get_config()
         base_config.update({'strides': self.strides})
         return base_config
@@ -389,6 +478,13 @@ class RegressBoxes(Layer):
         super(RegressBoxes, self).__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
+        """
+        Call the model inputs.
+
+        Args:
+            self: (todo): write your description
+            inputs: (dict): write your description
+        """
         locations, strides, regression = inputs
         x1 = locations[:, :, 0] - regression[:, :, 0] * 4.0
         y1 = locations[:, :, 1] - regression[:, :, 1] * 4.0
@@ -398,9 +494,22 @@ class RegressBoxes(Layer):
         return bboxes
 
     def compute_output_shape(self, input_shape):
+        """
+        Compute the output shape.
+
+        Args:
+            self: (todo): write your description
+            input_shape: (list): write your description
+        """
         return input_shape[2]
 
     def get_config(self):
+        """
+        Returns the collector settings
+
+        Args:
+            self: (str): write your description
+        """
         base_config = super(RegressBoxes, self).get_config()
 
         return base_config

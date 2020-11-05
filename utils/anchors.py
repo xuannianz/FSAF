@@ -16,12 +16,28 @@ class AnchorParameters:
     """
 
     def __init__(self, sizes, strides, ratios, scales):
+        """
+        Initialize the values of the given sizes.
+
+        Args:
+            self: (todo): write your description
+            sizes: (int): write your description
+            strides: (int): write your description
+            ratios: (todo): write your description
+            scales: (str): write your description
+        """
         self.sizes = sizes
         self.strides = strides
         self.ratios = ratios
         self.scales = scales
 
     def num_anchors(self):
+        """
+        Return the number of anchors.
+
+        Args:
+            self: (todo): write your description
+        """
         return len(self.ratios) * len(self.scales)
 
 
@@ -170,6 +186,13 @@ def make_shapes_callback(model):
     """
 
     def get_shapes(image_shape, pyramid_levels):
+        """
+        Return shape shape for image shape.
+
+        Args:
+            image_shape: (tuple): write your description
+            pyramid_levels: (str): write your description
+        """
         shape = layer_shapes(image_shape, model)
         image_shapes = [shape["P{}".format(level)][1:3] for level in pyramid_levels]
         return image_shapes

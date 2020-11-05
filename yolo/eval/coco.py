@@ -125,6 +125,14 @@ class Evaluate(keras.callbacks.Callback):
         super(Evaluate, self).__init__()
 
     def on_epoch_end(self, epoch, logs=None):
+        """
+        Generate epoch statistics.
+
+        Args:
+            self: (todo): write your description
+            epoch: (todo): write your description
+            logs: (todo): write your description
+        """
         logs = logs or {}
 
         coco_tag = ['AP @[ IoU=0.50:0.95 | area=   all | maxDets=100 ]',

@@ -18,6 +18,11 @@ import tensorflow as tf
 
 
 def get_session():
+    """
+    Return a session object. session.
+
+    Args:
+    """
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)

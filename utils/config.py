@@ -21,6 +21,12 @@ from utils.anchors import AnchorParameters
 
 
 def read_config_file(config_path):
+    """
+    Read config file.
+
+    Args:
+        config_path: (str): write your description
+    """
     config = configparser.ConfigParser()
 
     with open(config_path, 'r') as file:
@@ -39,6 +45,12 @@ def read_config_file(config_path):
 
 
 def parse_anchor_parameters(config):
+    """
+    Parse anchor parameters.
+
+    Args:
+        config: (todo): write your description
+    """
     ratios = np.array(list(map(float, config['anchor_parameters']['ratios'].split(' '))), keras.backend.floatx())
     scales = np.array(list(map(float, config['anchor_parameters']['scales'].split(' '))), keras.backend.floatx())
     sizes = list(map(int, config['anchor_parameters']['sizes'].split(' ')))

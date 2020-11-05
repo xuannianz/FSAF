@@ -46,6 +46,13 @@ class Anchors(keras.layers.Layer):
         super(Anchors, self).__init__(*args, **kwargs)
 
     def call(self, inputs, **kwargs):
+        """
+        Call the graph
+
+        Args:
+            self: (todo): write your description
+            inputs: (dict): write your description
+        """
         feature = inputs
         feature_shape = K.shape(feature)
 
@@ -61,6 +68,13 @@ class Anchors(keras.layers.Layer):
         return anchors
 
     def compute_output_shape(self, input_shape):
+        """
+        Compute shape of the shape.
+
+        Args:
+            self: (todo): write your description
+            input_shape: (list): write your description
+        """
         if None not in input_shape[1:]:
             if K.image_data_format() == 'channels_first':
                 total = np.prod(input_shape[2:4]) * self.num_anchors
@@ -72,6 +86,12 @@ class Anchors(keras.layers.Layer):
             return input_shape[0], None, 4
 
     def get_config(self):
+        """
+        Get configurations
+
+        Args:
+            self: (str): write your description
+        """
         config = super(Anchors, self).get_config()
         config.update({
             'size': self.size,
@@ -89,6 +109,13 @@ class UpsampleLike(keras.layers.Layer):
     """
 
     def call(self, inputs, **kwargs):
+        """
+        Computes the graph for the graph.
+
+        Args:
+            self: (todo): write your description
+            inputs: (dict): write your description
+        """
         source, target = inputs
         target_shape = K.shape(target)
         if K.image_data_format() == 'channels_first':
@@ -100,6 +127,13 @@ class UpsampleLike(keras.layers.Layer):
             return util_graphs.resize_images(source, (target_shape[1], target_shape[2]), method='nearest')
 
     def compute_output_shape(self, input_shape):
+        """
+        Compute output shape.
+
+        Args:
+            self: (todo): write your description
+            input_shape: (list): write your description
+        """
         if K.image_data_format() == 'channels_first':
             return (input_shape[0][0], input_shape[0][1]) + input_shape[1][2:4]
         else:
@@ -112,6 +146,13 @@ class ClipBoxes(keras.layers.Layer):
     """
 
     def call(self, inputs, **kwargs):
+        """
+        Implement tf.
+
+        Args:
+            self: (todo): write your description
+            inputs: (dict): write your description
+        """
         image, boxes = inputs
         shape = K.cast(K.shape(image), K.floatx())
         height = shape[1]
@@ -124,6 +165,13 @@ class ClipBoxes(keras.layers.Layer):
         return K.stack([x1, y1, x2, y2], axis=2)
 
     def compute_output_shape(self, input_shape):
+        """
+        Compute the output shape.
+
+        Args:
+            self: (todo): write your description
+            input_shape: (list): write your description
+        """
         return input_shape[1]
 
 
@@ -160,6 +208,13 @@ def filter_detections(
     """
 
     def _filter_detections(scores_, labels_):
+        """
+        Filters out all the edges.
+
+        Args:
+            scores_: (todo): write your description
+            labels_: (array): write your description
+        """
         # threshold based on score
         # (num_score_keeps, 1)
         indices_ = tf.where(K.greater(scores_, score_threshold))
@@ -292,6 +347,11 @@ class FilterDetections(keras.layers.Layer):
 
         # wrap nms with our parameters
         def _filter_detections(args):
+            """
+            Return a threshold tomodels.
+
+            Args:
+            """
             boxes_ = args[0]
             classification_ = args[1]
             other_ = args[2]

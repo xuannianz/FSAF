@@ -94,6 +94,12 @@ class Generator(keras.utils.Sequence):
             random.shuffle(self.groups)
 
     def on_epoch_end(self):
+        """
+        Shuffle the current epoch.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.shuffle_groups:
             random.shuffle(self.groups)
         self.current_index = 0
@@ -413,6 +419,13 @@ class Generator(keras.utils.Sequence):
         return [batch_images, batch_gt_boxes, batch_feature_shapes]
 
     def generate_anchors(self, image_shape):
+        """
+        Generate anchors for image_shape.
+
+        Args:
+            self: (todo): write your description
+            image_shape: (tuple): write your description
+        """
         anchor_params = None
         if self.config and 'anchor_parameters' in self.config:
             anchor_params = parse_anchor_parameters(self.config)

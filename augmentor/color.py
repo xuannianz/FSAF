@@ -3,6 +3,13 @@ from PIL import Image, ImageEnhance, ImageOps
 
 
 def autocontrast(image, prob=0.5):
+    """
+    Autocontontontontrast image.
+
+    Args:
+        image: (array): write your description
+        prob: (todo): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob > prob:
         return image
@@ -13,6 +20,13 @@ def autocontrast(image, prob=0.5):
 
 
 def equalize(image, prob=0.5):
+    """
+    Equalize an image.
+
+    Args:
+        image: (array): write your description
+        prob: (todo): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob > prob:
         return image
@@ -23,6 +37,14 @@ def equalize(image, prob=0.5):
 
 
 def solarize(image, prob=0.5, threshold=128.):
+    """
+    Solarize an image.
+
+    Args:
+        image: (array): write your description
+        prob: (todo): write your description
+        threshold: (float): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob > prob:
         return image
@@ -33,6 +55,16 @@ def solarize(image, prob=0.5, threshold=128.):
 
 
 def sharpness(image, prob=0.5, min=0, max=2, factor=None):
+    """
+    Sharpness image.
+
+    Args:
+        image: (array): write your description
+        prob: (todo): write your description
+        min: (float): write your description
+        max: (int): write your description
+        factor: (float): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob > prob:
         return image
@@ -45,6 +77,16 @@ def sharpness(image, prob=0.5, min=0, max=2, factor=None):
 
 
 def color(image, prob=0.5, min=0., max=1., factor=None):
+    """
+    Return a random color.
+
+    Args:
+        image: (array): write your description
+        prob: (todo): write your description
+        min: (float): write your description
+        max: (int): write your description
+        factor: (float): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob > prob:
         return image
@@ -57,6 +99,16 @@ def color(image, prob=0.5, min=0., max=1., factor=None):
 
 
 def contrast(image, prob=0.5, min=0.2, max=1., factor=None):
+    """
+    Contrast an image.
+
+    Args:
+        image: (array): write your description
+        prob: (todo): write your description
+        min: (float): write your description
+        max: (int): write your description
+        factor: (float): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob > prob:
         return image
@@ -69,6 +121,16 @@ def contrast(image, prob=0.5, min=0.2, max=1., factor=None):
 
 
 def brightness(image, prob=0.5, min=0.8, max=1., factor=None):
+    """
+    Generate a 2d.
+
+    Args:
+        image: (array): write your description
+        prob: (todo): write your description
+        min: (float): write your description
+        max: (int): write your description
+        factor: (float): write your description
+    """
     random_prob = np.random.uniform()
     if random_prob > prob:
         return image
@@ -108,6 +170,24 @@ class VisualEffect:
             solarize_threshold=128.,
 
     ):
+        """
+        Initialize the legend.
+
+        Args:
+            self: (todo): write your description
+            color_factor: (float): write your description
+            contrast_factor: (float): write your description
+            brightness_factor: (float): write your description
+            sharpness_factor: (str): write your description
+            color_prob: (str): write your description
+            contrast_prob: (str): write your description
+            brightness_prob: (todo): write your description
+            sharpness_prob: (todo): write your description
+            autocontrast_prob: (todo): write your description
+            equalize_prob: (todo): write your description
+            solarize_prob: (todo): write your description
+            solarize_threshold: (float): write your description
+        """
         self.color_factor = color_factor
         self.contrast_factor = contrast_factor
         self.brightness_factor = brightness_factor
