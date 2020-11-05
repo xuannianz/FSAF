@@ -25,14 +25,35 @@ class PriorProbability(keras.initializers.Initializer):
     """
 
     def __init__(self, probability=0.01):
+        """
+        Initialize the probability.
+
+        Args:
+            self: (todo): write your description
+            probability: (todo): write your description
+        """
         self.probability = probability
 
     def get_config(self):
+        """
+        Returns a dictionary of configuration.
+
+        Args:
+            self: (str): write your description
+        """
         return {
             'probability': self.probability
         }
 
     def __call__(self, shape, dtype=None):
+        """
+        Return the probability at the given shape.
+
+        Args:
+            self: (todo): write your description
+            shape: (tuple): write your description
+            dtype: (todo): write your description
+        """
         # set bias to -log((1 - p)/p) for foreground
         result = np.ones(shape, dtype=dtype) * -math.log((1 - self.probability) / self.probability)
 

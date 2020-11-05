@@ -112,7 +112,19 @@ def smooth_l1(sigma=3.0):
 
 
 def iou():
+    """
+    Computes the iou ( iou ).
+
+    Args:
+    """
     def _iou(y_true, y_pred):
+        """
+        Ioui - koum ( kou ).
+
+        Args:
+            y_true: (array): write your description
+            y_pred: (array): write your description
+        """
         y_true = tf.maximum(y_true, 0)
         pred_left = y_pred[:, :, 0]
         pred_top = y_pred[:, :, 1]
@@ -189,6 +201,11 @@ def focal_with_mask(alpha=0.25, gamma=2.0):
 
 
 def iou_with_mask():
+    """
+    Iou_with_mask
+
+    Args:
+    """
     def _iou(inputs):
         """
 

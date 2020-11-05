@@ -13,6 +13,13 @@ class Backbone(object):
     """
 
     def __init__(self, backbone):
+        """
+        Initialize the graph
+
+        Args:
+            self: (todo): write your description
+            backbone: (todo): write your description
+        """
         # a dictionary mapping custom layer names to the correct classes
         self.custom_objects = {
             'UpsampleLike': layers.UpsampleLike,

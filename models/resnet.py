@@ -32,6 +32,13 @@ class ResNetBackbone(Backbone):
     """
 
     def __init__(self, backbone):
+        """
+        Initialize custom objects.
+
+        Args:
+            self: (todo): write your description
+            backbone: (todo): write your description
+        """
         super(ResNetBackbone, self).__init__(backbone)
         self.custom_objects.update(keras_resnet.custom_objects)
 
@@ -162,12 +169,33 @@ def resnet_fsaf(num_classes, backbone='resnet50', modifier=None):
 
 
 def resnet50_retinanet(num_classes, inputs=None, **kwargs):
+    """
+    A wrapper for resnet50.
+
+    Args:
+        num_classes: (int): write your description
+        inputs: (todo): write your description
+    """
     return resnet_retinanet(num_classes=num_classes, backbone='resnet50', inputs=inputs, **kwargs)
 
 
 def resnet101_retinanet(num_classes, inputs=None, **kwargs):
+    """
+    A resnet - resnet resnet class.
+
+    Args:
+        num_classes: (int): write your description
+        inputs: (array): write your description
+    """
     return resnet_retinanet(num_classes=num_classes, backbone='resnet101', inputs=inputs, **kwargs)
 
 
 def resnet152_retinanet(num_classes, inputs=None, **kwargs):
+    """
+    A resnet - resnet152.
+
+    Args:
+        num_classes: (int): write your description
+        inputs: (todo): write your description
+    """
     return resnet_retinanet(num_classes=num_classes, backbone='resnet152', inputs=inputs, **kwargs)

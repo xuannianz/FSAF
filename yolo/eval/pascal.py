@@ -61,6 +61,14 @@ class Evaluate(keras.callbacks.Callback):
         super(Evaluate, self).__init__()
 
     def on_epoch_end(self, epoch, logs=None):
+        """
+        Generate training metrics.
+
+        Args:
+            self: (todo): write your description
+            epoch: (todo): write your description
+            logs: (todo): write your description
+        """
         logs = logs or {}
 
         # run evaluation

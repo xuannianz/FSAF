@@ -60,6 +60,13 @@ def transform_aabb(transform_matrix, aabb):
 
 
 def random_value(min, max):
+    """
+    Return a random value of min and max
+
+    Args:
+        min: (float): write your description
+        max: (float): write your description
+    """
     return np.random.uniform(min, max)
 
 
@@ -469,12 +476,28 @@ class TransformParameters:
             cval=0,
             relative_translation=True,
     ):
+        """
+        Initialize this image.
+
+        Args:
+            self: (todo): write your description
+            fill_mode: (str): write your description
+            interpolation: (todo): write your description
+            cval: (todo): write your description
+            relative_translation: (todo): write your description
+        """
         self.fill_mode = fill_mode
         self.cval = cval
         self.interpolation = interpolation
         self.relative_translation = relative_translation
 
     def cv_border_mode(self):
+        """
+        Return the border mode.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.fill_mode == 'constant':
             return cv2.BORDER_CONSTANT
         if self.fill_mode == 'nearest':
@@ -485,6 +508,12 @@ class TransformParameters:
             return cv2.BORDER_WRAP
 
     def cv_interpolation(self):
+        """
+        Interpolation coefficient.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.interpolation == 'nearest':
             return cv2.INTER_NEAREST
         if self.interpolation == 'linear':

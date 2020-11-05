@@ -44,6 +44,14 @@ class Evaluate(keras.callbacks.Callback):
         super(Evaluate, self).__init__()
 
     def on_epoch_end(self, epoch, logs=None):
+        """
+        Generate summary statistics on the epoch.
+
+        Args:
+            self: (todo): write your description
+            epoch: (todo): write your description
+            logs: (todo): write your description
+        """
         logs = logs or {}
 
         # run evaluation
@@ -103,30 +111,84 @@ class RedirectModel(keras.callbacks.Callback):
     def __init__(self,
                  callback,
                  model):
+        """
+        Initialize the callback.
+
+        Args:
+            self: (todo): write your description
+            callback: (callable): write your description
+            model: (todo): write your description
+        """
         super(RedirectModel, self).__init__()
 
         self.callback = callback
         self.redirect_model = model
 
     def on_epoch_begin(self, epoch, logs=None):
+        """
+        Initialize the callback
+
+        Args:
+            self: (todo): write your description
+            epoch: (todo): write your description
+            logs: (todo): write your description
+        """
         self.callback.on_epoch_begin(epoch, logs=logs)
 
     def on_epoch_end(self, epoch, logs=None):
+        """
+        Called when a single epoch
+
+        Args:
+            self: (todo): write your description
+            epoch: (todo): write your description
+            logs: (todo): write your description
+        """
         self.callback.on_epoch_end(epoch, logs=logs)
 
     def on_batch_begin(self, batch, logs=None):
+        """
+        Called when a new callback.
+
+        Args:
+            self: (todo): write your description
+            batch: (todo): write your description
+            logs: (todo): write your description
+        """
         self.callback.on_batch_begin(batch, logs=logs)
 
     def on_batch_end(self, batch, logs=None):
+        """
+        Called when a batch is received.
+
+        Args:
+            self: (todo): write your description
+            batch: (todo): write your description
+            logs: (todo): write your description
+        """
         self.callback.on_batch_end(batch, logs=logs)
 
     def on_train_begin(self, logs=None):
+        """
+        Initialize the callback.
+
+        Args:
+            self: (todo): write your description
+            logs: (todo): write your description
+        """
         # overwrite the model with our custom model
         self.callback.set_model(self.redirect_model)
 
         self.callback.on_train_begin(logs=logs)
 
     def on_train_end(self, logs=None):
+        """
+        Called when a callback
+
+        Args:
+            self: (todo): write your description
+            logs: (todo): write your description
+        """
         self.callback.on_train_end(logs=logs)
 
 
@@ -148,6 +210,14 @@ class CocoEval(keras.callbacks.Callback):
         super(CocoEval, self).__init__()
 
     def on_epoch_end(self, epoch, logs=None):
+        """
+        Generate training statistics.
+
+        Args:
+            self: (todo): write your description
+            epoch: (todo): write your description
+            logs: (todo): write your description
+        """
         logs = logs or {}
 
         coco_tag = ['AP @[ IoU=0.50:0.95 | area=   all | maxDets=100 ]',

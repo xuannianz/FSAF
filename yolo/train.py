@@ -30,6 +30,12 @@ from yolo.model import yolo_body
 
 
 def makedirs(path):
+    """
+    Makes a directory.
+
+    Args:
+        path: (str): write your description
+    """
     # Intended behavior: try to create the directory,
     # pass if the directory exists already, fails otherwise.
     # Meant for Python 2.7/3.n compatibility.
@@ -278,6 +284,11 @@ def parse_args(args):
 
 
 def main(args=None):
+    """
+    Main function.
+
+    Args:
+    """
     # parse arguments
     if args is None:
         args = sys.argv[1:]

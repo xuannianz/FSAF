@@ -105,12 +105,28 @@ class TransformParameters:
             cval=0,
             relative_translation=True,
     ):
+        """
+        Initialize this image.
+
+        Args:
+            self: (todo): write your description
+            fill_mode: (str): write your description
+            interpolation: (todo): write your description
+            cval: (todo): write your description
+            relative_translation: (todo): write your description
+        """
         self.fill_mode = fill_mode
         self.cval = cval
         self.interpolation = interpolation
         self.relative_translation = relative_translation
 
     def cvBorderMode(self):
+        """
+        Return the contents of the image.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.fill_mode == 'constant':
             return cv2.BORDER_CONSTANT
         if self.fill_mode == 'nearest':
@@ -121,6 +137,12 @@ class TransformParameters:
             return cv2.BORDER_WRAP
 
     def cvInterpolation(self):
+        """
+        Determine interpolation.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.interpolation == 'nearest':
             return cv2.INTER_NEAREST
         if self.interpolation == 'linear':
@@ -260,6 +282,16 @@ class VisualEffect:
             hue_delta,
             saturation_factor,
     ):
+        """
+        Initialize the light.
+
+        Args:
+            self: (todo): write your description
+            contrast_factor: (float): write your description
+            brightness_delta: (str): write your description
+            hue_delta: (todo): write your description
+            saturation_factor: (todo): write your description
+        """
         self.contrast_factor = contrast_factor
         self.brightness_delta = brightness_delta
         self.hue_delta = hue_delta
@@ -313,6 +345,11 @@ def random_visual_effect_generator(
     _check_range(saturation_range, 0)
 
     def _generate():
+        """
+        Generate a set of integers.
+
+        Args:
+        """
         while True:
             yield VisualEffect(
                 contrast_factor=_uniform(contrast_range),
